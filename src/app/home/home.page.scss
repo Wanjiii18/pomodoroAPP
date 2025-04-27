@@ -1,27 +1,28 @@
 #container {
   text-align: center;
-
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
+  margin-top: 20px;
 }
 
 #container p {
-  font-size: 16px;
-  line-height: 22px;
-
-  color: #8c8c8c;
-
-  margin: 0;
+  font-size: 18px;
+  margin-bottom: 10px;
 }
 
-#container a {
-  text-decoration: none;
+#container strong {
+  font-size: 24px;
+  display: block;
+  margin-bottom: 20px;
+}
+
+ion-button {
+  margin: 10px 0; /* Add spacing between buttons */
+  color: white; /* Ensure button text is visible */
+}
+
+ion-button[color="danger"] {
+  background-color: red; /* Red background for Stop button */
+}
+
+ion-button[color="success"] {
+  background-color: green; /* Green background for Reset button */
 }
