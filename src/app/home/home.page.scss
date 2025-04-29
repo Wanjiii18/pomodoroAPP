@@ -1,6 +1,28 @@
+.phone-container {
+  width: 360px;
+  height: 640px;
+  margin: 20px auto;
+  border: 2px solid #ccc;
+  border-radius: 20px;
+  background-color: #f9f9f9;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  position: relative; /* Enable positioning for child elements */
+}
+
+.exit-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 20;
+  font-size: 14px;
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+
 #container {
   text-align: center;
-  margin-top: 20px;
+  width: 100%;
 }
 
 #container p {
@@ -15,14 +37,31 @@
 }
 
 ion-button {
-  margin: 10px 0; /* Add spacing between buttons */
-  color: white; /* Ensure button text is visible */
+  margin: 10px 0;
+  color: white;
 }
 
 ion-button[color="danger"] {
-  background-color: red; /* Red background for Stop button */
+  background-color: red;
 }
 
 ion-button[color="success"] {
-  background-color: green; /* Green background for Reset button */
+  background-color: green;
+}
+
+ion-button[color="primary"] {
+  background-color: blue;
+}
+
+ion-button[color="tertiary"] {
+  background-color: orange;
+}
+
+ion-button[color="dark"] {
+  background-color: black;
+  color: white;
+}
+
+ion-toolbar {
+  z-index: 10;
 }

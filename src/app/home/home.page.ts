@@ -43,6 +43,7 @@ export class HomePage {
 
   startPomodoro() {
     this.isRunning = true;
+    this.timerLabel = this.isPomodoro ? 'Work Session Starting' : 'Break Session Running'; // Update label
     this.timer = this.isPomodoro ? 25 * 60 : 5 * 60; // 25 minutes for work, 5 minutes for break
     this.interval = setInterval(() => {
       if (this.timer > 0) {
@@ -57,26 +58,51 @@ export class HomePage {
   stopTimer() {
     clearInterval(this.interval);
     this.isRunning = false;
-    this.timerLabel = 'Stopped'; // Update the label when the timer is stopped
+    this.timerLabel = 'Stopped'; // Update label when the timer is stopped
   }
 
   resetTimer() {
     this.stopTimer();
     this.timer = 0;
     this.isPomodoro = true;
-    this.timerLabel = 'Reset'; // Update the label when the timer is reset
+    this.timerLabel = 'Reset'; // Update label when the timer is reset
+  }
+
+  continueTimer() {
+    if (!this.isRunning && this.timer > 0) {
+      this.isRunning = true;
+      this.timerLabel = this.isPomodoro ? 'Work Session Resumed' : 'Break Session Resumed'; // Update label
+      this.interval = setInterval(() => {
+        if (this.timer > 0) {
+          this.timer--;
+        } else {
+          clearInterval(this.interval); // Ensure the interval is cleared
+          this.notify(); // Notify the user
+        }
+      }, 1000);
+    }
   }
 
   notify() {
+    console.log('Notification triggered'); // Debugging log
     const message = this.isPomodoro
       ? 'Work session ended! Time for a break.'
       : 'Break ended! Time to work.';
     const nextSession = this.isPomodoro ? '5-minute Break' : '25-minute Work Session';
 
-    this.isPomodoro = !this.isPomodoro; // Switch between work and break first
-    if (confirm(`${message}\nYou have (${this.timer}) ${nextSession}`)) {
-      this.startPomodoro(); // Automatically start the next session
+    // Trigger vibration for 500ms
+    if (navigator.vibrate) {
+      console.log('Vibration triggered'); // Debugging log
+      navigator.vibrate(500);
+    } else {
+      console.log('Vibration not supported'); // Fallback log
     }
+
+    this.isPomodoro = !this.isPomodoro; // Switch between work and break first
+    alert(`${message}\nNext: ${nextSession}`); // Use alert for simpler notification
+
+    // Start the next session immediately
+    this.startPomodoro();
   }
 
   formatTime() {
