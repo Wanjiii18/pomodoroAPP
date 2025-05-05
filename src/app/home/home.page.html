@@ -19,12 +19,6 @@
       <ion-button expand="block" color="primary" (click)="startPomodoro()" [disabled]="isRunning">
         <ion-icon name="play-outline"></ion-icon> Start
       </ion-button>
-      <ion-button expand="block" color="danger" (click)="stopTimer()" [disabled]="!isRunning">
-        <ion-icon name="pause-outline"></ion-icon> Stop
-      </ion-button>
-      <ion-button expand="block" color="tertiary" (click)="continueTimer()" [disabled]="isRunning || timer === 0">
-        <ion-icon name="play-forward-outline"></ion-icon> Continue
-      </ion-button>
       <ion-button expand="block" color="success" (click)="resetTimer()">
         <ion-icon name="refresh-outline"></ion-icon> Reset
       </ion-button>
