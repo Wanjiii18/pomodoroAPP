@@ -1,67 +1,131 @@
-.phone-container {
-  width: 360px;
-  height: 640px;
-  margin: 20px auto;
-  border: 2px solid #ccc;
-  border-radius: 20px;
-  background-color: #f9f9f9;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  padding: 20px;
-  position: relative; /* Enable positioning for child elements */
-}
-
-.exit-button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 20;
-  font-size: 14px;
-  padding: 5px 10px;
-  border-radius: 5px;
-}
-
 #container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
   text-align: center;
-  width: 100%;
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  color: #333333;
+  padding: 20px;
+  border-radius: 40px; /* Rounded corners for phone-like appearance */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); /* Stronger shadow for depth */
+  border: 2px solid #e0e0e0; /* Border to mimic phone edges */
+  max-width: 400px; /* Restrict width to phone size */
+  margin: auto; /* Center the container */
 }
 
-#container p {
-  font-size: 18px;
-  margin-bottom: 10px;
-}
-
-#container strong {
-  font-size: 24px;
-  display: block;
+#clock,
+#timer {
   margin-bottom: 20px;
+  background: #ffffff;
+  padding: 15px 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 350px; /* Adjust width to fit inside the phone */
+}
+
+#timer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.timer-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.edit-icon {
+  font-size: 24px;
+  color: #555555;
+  cursor: pointer;
+  transition: color 0.3s ease-in-out;
+}
+
+.edit-icon:hover {
+  color: #ff758c;
+}
+
+#clock strong,
+#timer strong {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: #555555;
+}
+
+#clock p,
+#timer p {
+  font-size: 28px;
+  font-weight: bold;
+  color: #333333;
+  margin: 5px 0 0;
 }
 
 ion-button {
-  margin: 10px 0;
-  color: white;
+  margin-top: 20px;
+  --background: linear-gradient(135deg, #ff758c, #ff7eb3);
+  --color: #ffffff;
+  --border-radius: 12px;
+  --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  font-size: 18px;
+  font-weight: bold;
+  padding: 12px 24px;
+  width: 90%;
+  max-width: 300px;
 }
 
-ion-button[color="danger"] {
-  background-color: red;
+ion-button:hover {
+  --background: linear-gradient(135deg, #ff7eb3, #ff758c);
+  --box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
-ion-button[color="success"] {
-  background-color: green;
+ion-button {
+  transition: all 0.3s ease-in-out;
 }
 
-ion-button[color="primary"] {
-  background-color: blue;
+#clock,
+#timer {
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }
 
-ion-button[color="tertiary"] {
-  background-color: orange;
+#clock:hover,
+#timer:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
 }
 
-ion-button[color="dark"] {
-  background-color: black;
-  color: white;
+#container strong {
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #444444;
 }
 
-ion-toolbar {
-  z-index: 10;
+#container p {
+  font-size: 16px;
+  line-height: 22px;
+  color: #666666;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  #container {
+    padding: 15px;
+  }
+
+  #clock p,
+  #timer p {
+    font-size: 24px;
+  }
+
+  ion-button {
+    font-size: 16px;
+    padding: 10px 20px;
+  }
 }

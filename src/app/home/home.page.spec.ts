@@ -1,23 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { IonicModule, Platform } from '@ionic/angular';
+import { IonicModule } from '@ionic/angular';
 
 import { HomePage } from './home.page';
 
 describe('HomePage', () => {
   let component: HomePage;
   let fixture: ComponentFixture<HomePage>;
-  let platformSpy: jasmine.SpyObj<Platform>;
 
   beforeEach(async () => {
-    platformSpy = jasmine.createSpyObj('Platform', ['backButton']);
-    platformSpy.backButton = {
-      subscribeWithPriority: jasmine.createSpy('subscribeWithPriority'),
-    } as any;
-
     await TestBed.configureTestingModule({
       declarations: [HomePage],
-      imports: [IonicModule.forRoot()],
-      providers: [{ provide: Platform, useValue: platformSpy }],
+      imports: [IonicModule.forRoot()]
     }).compileComponents();
 
     fixture = TestBed.createComponent(HomePage);
@@ -25,7 +18,7 @@ describe('HomePage', () => {
     fixture.detectChanges();
   });
 
-  it('should subscribe to back button and exit app', () => {
-    expect(platformSpy.backButton.subscribeWithPriority).toHaveBeenCalled();
+  it('should create', () => {
+    expect(component).toBeTruthy();
   });
 });

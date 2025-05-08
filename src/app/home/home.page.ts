@@ -1,122 +1,224 @@
 import { Component } from '@angular/core';
-import { Platform } from '@ionic/angular';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { Haptics } from '@capacitor/haptics';
-
-declare global {
-  interface Navigator {
-    app?: {
-      exitApp: () => void;
-    };
-    device?: {
-      exitApp: () => void;
-    };
-  }
-}
+import { AlertController, IonicModule, Platform } from '@ionic/angular';
+import { CommonModule } from '@angular/common';
+import { App } from '@capacitor/app';
 
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
-  standalone: false,
+  standalone: true,
+  imports: [CommonModule, IonicModule],
 })
 export class HomePage {
-  timer: number = 0; // Timer in seconds
-  interval: any; // Holds the interval reference
-  isPomodoro: boolean = true; // true for work session, false for break
-  isRunning: boolean = false; // Indicates if the timer is running
-  currentTime: string = ''; // Holds the current time
-  timerLabel: string = 'Stopped'; // Label to indicate the timer's state
+  currentTime: string = '';
+  timerDisplay: string = '00:00';
+  currentState: string = 'Working'; // Add property to track the current state
+  private timer: any;
+  private isPomodoro: boolean = true;
+  private pomodoroDuration: number = 25 * 60; 
+  private breakDuration: number = 5 * 60; 
+  private hapticInterval: any; // Reference to the haptic vibration interval
 
-  constructor(private platform: Platform) {
-    // Handle back button press to exit the app
-    this.platform.backButton.subscribeWithPriority(10, () => {
-      navigator.app?.exitApp(); // Use optional chaining to safely call exitApp
-    });
+  constructor(
+    private platform: Platform,
+    private alertController: AlertController
+  ) {
+    this.initializeClock();
+    this.handleBackButton();
+  }
 
-    // Start updating the current time
+  private initializeClock(): void {
     this.updateCurrentTime();
+    setInterval(() => this.updateCurrentTime(), 1000);
   }
 
-  // Updates the current time every second
-  updateCurrentTime() {
-    setInterval(() => {
-      const now = new Date();
-      this.currentTime = now.toLocaleTimeString(); // Format the current time
-    }, 1000);
+  private updateCurrentTime(): void {
+    const now = new Date();
+    this.currentTime = now.toLocaleTimeString();
   }
 
-  // Starts the Pomodoro timer
-  startPomodoro() {
-    this.isRunning = true;
-    this.timerLabel = this.isPomodoro ? 'Work Session Running' : 'Break Session Running';
-    this.timer = this.isPomodoro ? 25 * 60 : 5 * 60; // 25 minutes for work, 5 minutes for break
-    this.interval = setInterval(() => {
-      if (this.timer > 0) {
-        this.timer--;
-      } else {
-        this.notify(); // Notify the user
+  async startPomodoro(): Promise<void> {
+    this.currentState = this.isPomodoro ? 'Working' : 'Break'; // Update state
+    const duration = this.isPomodoro ? this.pomodoroDuration : this.breakDuration;
+    this.startCountdown(duration);
+  }
+
+  resetPomodoro(): void {
+    clearInterval(this.timer); 
+    this.timerDisplay = '00:00'; 
+    console.log('Pomodoro cycle reset.');
+  }
+
+  private startCountdown(duration: number): void {
+    clearInterval(this.timer);
+    let timeLeft = duration;
+
+    this.timer = setInterval(() => {
+      this.updateTimerDisplay(timeLeft);
+
+      if (timeLeft <= 0) {
+        clearInterval(this.timer);
+        this.handleTimerEnd();
       }
+
+      timeLeft--;
     }, 1000);
   }
 
-
-
-  // Resets the timer
-  resetTimer() {
-    this.timer = 0;
-    this.isPomodoro = true; // Reset to work session
-    this.timerLabel = 'Reset';
+  private updateTimerDisplay(timeLeft: number): void {
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    this.timerDisplay = `${this.pad(minutes)}:${this.pad(seconds)}`;
   }
 
-  // Continues the timer if paused
- 
+  private async handleTimerEnd(): Promise<void> {
+    await this.notifyEnd();
+    this.isPomodoro = !this.isPomodoro;
+    this.currentState = this.isPomodoro ? 'Working' : 'Break'; // Update state
 
-  // Notifies the user when the timer ends
-  notify() {
-    console.log('Notification triggered');
-    const message = this.isPomodoro
-      ? 'Work session ended! Time for a break.'
-      : 'Break ended! Time to work.';
-    const nextSession = this.isPomodoro ? 'Break Session Running' : 'Work Session Running';
+    // Add a 3-second allowance before starting the next cycle
+    setTimeout(() => {
+      this.stopHaptic(); // Stop haptic vibration when the next cycle starts
+      this.startPomodoro();
+    }, 3000);
+  }
 
-    // Trigger haptic feedback
-    Haptics.vibrate().catch((err) => console.log('Haptics not supported:', err));
+  private pad(num: number): string {
+    return num < 10 ? '0' + num : num.toString();
+  }
 
-    // Trigger vibration as a fallback
-    if (navigator.vibrate) {
-      navigator.vibrate([1000, 500, 1000]); // Vibrate pattern: 1s, pause 0.5s, vibrate 1s
-    } else {
-      console.log('Vibration not supported');
+  async notifyEnd(): Promise<void> {
+    try {
+      const message = this.isPomodoro
+        ? 'Working hour done! Time for a break.'
+        : 'Break time done! Time to work.';
+
+      // Start continuous haptic vibration
+      this.hapticInterval = setInterval(() => {
+        Haptics.vibrate({ duration: 500 });
+      }, 500);
+
+      // Show an alert with the message
+      const alert = await this.alertController.create({
+        header: 'Timer Ended',
+        message: message,
+        buttons: [
+          {
+            text: 'OK',
+            handler: () => {
+              this.stopHaptic(); // Stop haptic vibration when "OK" is clicked
+            },
+          },
+        ],
+      });
+      await alert.present();
+
+      // Schedule a notification with an alarm sound
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            title: 'Pomodoro Timer',
+            body: message,
+            id: new Date().getTime(),
+            schedule: { at: new Date(new Date().getTime() + 1000) },
+            sound: 'alarm.mp3', // Use an alarm sound
+          },
+        ],
+      });
+
+      console.log('End notification scheduled:', message);
+    } catch (error) {
+      console.error('Error scheduling end notification:', error);
     }
-
-    // Toggle the session type
-    this.isPomodoro = !this.isPomodoro; // Switch between work and break
-
-    // Update the timer label
-    this.timerLabel = nextSession;
-
-    // Notify the user with an alert
-    alert(`${message}\nNext: ${nextSession}`);
-
-    // Start the next session immediately
-    this.startPomodoro();
   }
 
-  // Formats the timer into MM:SS format
-  formatTime() {
-    const minutes = Math.floor(this.timer / 60);
-    const seconds = this.timer % 60;
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-  }
-
-  // Exits the app
-  exitApp() {
-    if (navigator.app) {
-      navigator.app.exitApp(); // Exit the app on Android devices
-    } else if (navigator.device) {
-      navigator.device.exitApp(); // Exit the app on other platforms
-    } else {
-      console.log('Exit app is not supported in this environment.');
+  private stopHaptic(): void {
+    if (this.hapticInterval) {
+      clearInterval(this.hapticInterval); // Clear the haptic vibration interval
+      this.hapticInterval = null;
     }
+  }
+
+  async setPreferences(): Promise<void> {
+    const alert = await this.alertController.create({
+      header: 'Set Timer Preferences',
+      message: `Set your preferred durations for Work and Break (MM:SS):`,
+      inputs: [
+        {
+          name: 'workMinutes',
+          type: 'number',
+          placeholder: 'Work Minutes',
+          value: Math.floor(this.pomodoroDuration / 60),
+          label: 'Work (Minutes)',
+        },
+        {
+          name: 'workSeconds',
+          type: 'number',
+          placeholder: 'Work Seconds',
+          value: this.pomodoroDuration % 60,
+          label: 'Work (Seconds)',
+        },
+        {
+          name: 'breakMinutes',
+          type: 'number',
+          placeholder: 'Break Minutes',
+          value: Math.floor(this.breakDuration / 60),
+          label: 'Break (Minutes)',
+        },
+        {
+          name: 'breakSeconds',
+          type: 'number',
+          placeholder: 'Break Seconds',
+          value: this.breakDuration % 60,
+          label: 'Break (Seconds)',
+        },
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+        },
+        {
+          text: 'Save',
+          handler: (data) => {
+            const workMinutes = parseInt(data.workMinutes, 10) || 0;
+            const workSeconds = parseInt(data.workSeconds, 10) || 0;
+            const breakMinutes = parseInt(data.breakMinutes, 10) || 0;
+            const breakSeconds = parseInt(data.breakSeconds, 10) || 0;
+
+            const workTotal = workMinutes * 60 + workSeconds;
+            const breakTotal = breakMinutes * 60 + breakSeconds;
+
+            if (workTotal > 0) {
+              this.pomodoroDuration = workTotal;
+            } else {
+              console.error('Invalid Work duration entered.');
+              return false; // Prevent closing the alert
+            }
+
+            if (breakTotal > 0) {
+              this.breakDuration = breakTotal;
+            } else {
+              console.error('Invalid Break duration entered.');
+              return false; // Prevent closing the alert
+            }
+
+            console.log('Preferences updated:', this.pomodoroDuration, this.breakDuration);
+            return true; // Close the alert
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private handleBackButton(): void {
+    this.platform.backButton.subscribeWithPriority(10, () => {
+      console.log('Back button pressed. Exiting app...');
+      App.exitApp();
+    });
   }
 }
